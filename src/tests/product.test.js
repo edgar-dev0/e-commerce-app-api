@@ -1,5 +1,6 @@
 const request = require('supertest');
 const app = require('../app');
+require('../models');
 
 let id;
 let token;
@@ -13,14 +14,17 @@ beforeAll(async() => {
   token = res.body.token;
 });
 
-test('POST /products should create user record', async () => {
+test('POST /products should create product record', async () => {
   const body = {
-    title: 'Pen Tablet',
-    description: 'Tablet for free draw',
-    brand: 'UGEE',
-    price: '150',
+    title: 'Iphone 12',
+    description: 'Smarthphone Iphone 12 256gb',
+    brand: 'Apple',
+    price: 1500,
+    categoryId: 1
   };
-  const res = await request(app).post('/products').send(body);
+  const res = await request(app).post('/products')
+    .send(body)
+    .set('Authorization', `Bearer ${token}`);
   id = res.body.id;
   expect(res.status).toBe(201);
   expect(res.body.id).toBeDefined();
@@ -35,12 +39,20 @@ test('GET /products should get all products records', async () => {
   expect(res.body).toBeInstanceOf(Array);
 });
 
-test('PUT /products/:id should update an user record by id', async () => {
+test('GET /products/:id should get one product record by id', async () => {
+  const res = await request(app)
+    .get(`/products/${id}`)
+    .set('Authorization', `Bearer ${token}`);
+  expect(res.status).toBe(200);
+  expect(res.body).toBeInstanceOf(Object);
+});
+
+test('PUT /products/:id should update an product record by id', async () => {
   const body = {
-    title: 'Pen Tablet',
-    description: 'Tablet for free draw',
-    brand: 'UGEE',
-    price: '150',
+    title: 'Hub USB',
+    description: 'HUB Port C - 7 in 1',
+    brand: 'UGREEN',
+    price: 200
   };
   const res = await request(app)
     .put(`/products/${id}`)
@@ -50,7 +62,7 @@ test('PUT /products/:id should update an user record by id', async () => {
   expect(res.body.title).toBe(body.title);
 });
 
-test('DELETE /products/:id  should delete an user record by id', async () => {
+test('DELETE /products/:id  should delete an product record by id', async () => {
   const res = await request(app)
     .delete(`/products/${id}`)
     .set('Authorization', `Bearer ${token}`);

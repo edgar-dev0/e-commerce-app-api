@@ -1,43 +1,38 @@
 const catchError = require('../utils/catchError');
 const Purchase = require('../models/Purchase');
+const Cart = require('../models/Cart');
+const Image = require('../models/Image');
+const Product = require('../models/Product');
 
 const getAll = catchError(async(req, res) => {
-    const results = await Purchase.findAll();
+    const userId = req.user.id;
+    const results = await Purchase.findAll({
+        where: { userId: userId },
+        include: [{
+            model: Product,
+            include: [Image]
+        }]
+    });
     return res.json(results);
 });
 
 const create = catchError(async(req, res) => {
-    const result = await Purchase.create(req.body);
-    return res.status(201).json(result);
-});
+    const userId = req.user.id;
+    //Obtenemos todos los productos agregados al carrito correspondiente al usuario logeado
+    const cart = await Cart.findAll({
+        where: { userId: userId },
+        attributes: [ 'userId', 'productId', 'quantity'],
+        raw: true
+    });
 
-const getOne = catchError(async(req, res) => {
-    const { id } = req.params;
-    const result = await Purchase.findByPk(id);
-    if(!result) return res.sendStatus(404);
-    return res.json(result);
-});
-
-const remove = catchError(async(req, res) => {
-    const { id } = req.params;
-    await Purchase.destroy({ where: {id} });
-    return res.sendStatus(204);
-});
-
-const update = catchError(async(req, res) => {
-    const { id } = req.params;
-    const result = await Purchase.update(
-        req.body,
-        { where: {id}, returning: true }
-    );
-    if(result[0] === 0) return res.sendStatus(404);
-    return res.json(result[1][0]);
+    const purchases = await Purchase.bulkCreate(cart);
+    //await Purchase.create({ userId, productId, quantity })
+    //eliminamos los productos del carro de compras
+    await Cart.destroy({ where: { userId: userId }});
+    return res.json(purchases);
 });
 
 module.exports = {
     getAll,
-    create,
-    getOne,
-    remove,
-    update
+    create
 }
