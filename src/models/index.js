@@ -15,6 +15,9 @@ Image.belongsTo(Product);
 Product.hasMany(Cart);
 Cart.belongsTo(Product);
 
+User.hasMany(Cart);
+Cart.belongsTo(User);
+
 Product.hasMany(Purchase);
 Purchase.belongsTo(Product);
 
