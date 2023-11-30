@@ -40,6 +40,14 @@ test('GET /users should get all users records', async () => {
   expect(res.body).toBeInstanceOf(Array);
 });
 
+test('GET /users/:id should get one user record by id', async () => {
+  const res = await request(app)
+    .get(`/users/${id}`)
+    .set('Authorization', `Bearer ${token}`);
+  expect(res.status).toBe(200);
+  expect(res.body).toBeInstanceOf(Object);
+});
+
 test('PUT /users/:id should update an user record by id', async () => {
   const body = {
     firstName: 'Edgar',
